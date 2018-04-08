@@ -1,0 +1,16 @@
+people:
+  Derek:
+    name: Derek Merck
+    credential: PhD
+    title: Author
+    affiliation: Rhode Island Hospital
+
+  Lisa:
+    name: Lisa Merck
+    title: Scientist
+    credential: MD, MPH
+
+places:
+  Barrington:
+    name: Barrington, RI
+    role: town

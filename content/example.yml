@@ -1,0 +1,36 @@
+---
+# PanBook Example
+
+meta:
+  title:  Test Book
+  authors: [Derek, Lisa]
+  date: April 10, 2018
+
+people:
+  Lisa:
+    name: Lisa Merck
+    title: Scientist
+    credential: MD, MPH
+  
+data:
+  key1: 100
+  key2: 200
+
+content:
+  background: >
+    blah blah {{ data.key1 }}
+
+  method: |
+    something for project 1 using {{ data.key1 }} [@Keshavamurthy_SPIE_2017]
+    something for project 2 using {{ data.key1 * data.key2 }}
+
+    ```table
+    ---
+    markdown: true
+    ---
+    {% include "table.csv" %}
+    ```
+
+    ```mermaid
+    {% include "timeline.mmd" %}
+    ```
