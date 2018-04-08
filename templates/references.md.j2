@@ -1,2 +1,7 @@
 References
 -------------------
+{%- if content.get('nocite') %}
+---
+nocite: {{ content.nocite }}
+---
+{% endif -%}

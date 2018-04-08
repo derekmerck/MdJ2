@@ -7,3 +7,14 @@ proposal:
 - expected_results
 - resources
 - references
+
+# No resources
+proposal_narrative:
+- front_matter
+- aims
+- background
+- approach
+- risks
+- expected_results
+- references
+

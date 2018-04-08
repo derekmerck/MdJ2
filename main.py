@@ -27,6 +27,7 @@ from pprint import pformat
 import pypandoc as pd
 from jinja2 import Environment, FileSystemLoader
 import dateutil.parser as dateparser
+from subprocess import check_output
 
 def read_yml(fp):
     with open(fp, 'rU') as f:
@@ -34,7 +35,7 @@ def read_yml(fp):
 
 def read_blueprints():
     bps = {}
-    for fp in glob("./blueprints/*.yml"):
+    for fp in glob(os.path.join(pdoc_loc, "blueprints/*.yml")):
         bps.update(read_yml(fp))
     return bps
 
@@ -49,7 +50,7 @@ def deep_update(d, u):
             d[k] = v
     return d
 
-def prerender_content(env, content):
+def prerender_content(env, content, content_dir):
 
     def render(item):
         # logging.debug('type of item {}'.format(type(item)))
@@ -70,12 +71,20 @@ def prerender_content(env, content):
 
     content['content'] = render(content['content'])
 
+    # prerender budget if it exists
+    if os.path.exists(os.path.join(content_dir, "budget.csv")):
+        budget = check_output(
+            [os.path.join(py3_loc, "python3"),
+             os.path.join(py3_loc, "csvtomd"),
+             os.path.join(content_dir, "budget.csv")])
+        content['content']['budget'] = budget
+        logging.debug(budget)
 
 
 def render_template(env, name, content):
 
     template_fn = "{}.md.j2".format(name)
-    logging.debug(env.list_templates())
+    # logging.debug(env.list_templates())
     try:
         template = env.get_template(template_fn)
     except:
@@ -91,10 +100,11 @@ def render_pdoc(blueprint, content, content_dir):
         format = '%B %d, %Y'
         return native.strftime(format)
 
-    env = Environment(loader=FileSystemLoader(['templates', content_dir]))
+    env = Environment(loader=FileSystemLoader(
+        [os.path.join(pdoc_loc, 'templates'), content_dir]))
     env.filters['strftime'] = j2_strftime
 
-    prerender_content(env, content)
+    prerender_content(env, content, content_dir)
     logging.debug(pformat(content))
 
 
@@ -115,11 +125,12 @@ def assemble_pdoc(blueprint_name, content_fp, global_fp=None):
 def parse_args():
 
     p = ArgumentParser()
-    p.add_argument("--input",     "-i", default="content/example.yml")
-    p.add_argument("--blueprint", "-b", default="abstract")
+    p.add_argument("input")
+    p.add_argument("blueprint")
+    p.add_argument("--bibliography", "-b", default="/Users/derek/MyLibrary.yaml")
     p.add_argument("--globals",   "-g", default="content/globals.yml")
-    p.add_argument("--format",    "-f", default="md")
-    p.add_argument("--output",    "-o", default="output.md")
+    p.add_argument("--format",    "-f", default="markdown_github")
+    p.add_argument("--outfile",   "-o")
 
     opts = p.parse_args()
     return opts
@@ -130,30 +141,39 @@ if __name__ == "__main__":
 
     logging.basicConfig(level=logging.DEBUG)
 
-    blueprint_name = "proposal"
-    content_fp = "cain/cain.yml"
-    global_fp = "cain/globals.yml"
+    py3_loc = "/Users/derek/anaconda/envs/python3/bin"
+    py2_loc = "'/Users/derek/anaconda/envs/testing27/bin/"
+    pdoc_loc = os.path.dirname(os.path. realpath(__file__))
 
-    blueprint, content = assemble_pdoc(blueprint_name, content_fp, global_fp)
-    md = render_pdoc(blueprint, content, os.path.split(content_fp)[0])
+    opts = parse_args()
+
+    blueprint, content = assemble_pdoc(opts.blueprint, opts.input, opts.globals)
+    md = render_pdoc(blueprint, content, os.path.split(opts.input)[0])
 
     time.sleep(0.5)
     print(md)
 
-    filters = ['/Users/derek/anaconda/envs/testing27/bin/pantable',
-               '/Users/derek/anaconda/envs/testing27/bin/pandoc-mermaid',
+    filters = ['pandoc-fignos',
+               'pandoc-mermaid',
                'pandoc-citeproc']
     pdoc_args = ['--mathjax',
-                 '--bibliography=/Users/derek/MyLibrary.json']
+                 '--bibliography={}'.format(opts.bibliography)]
     output = pd.convert_text(source=md,
                              format='md',
-                             to='rst',
+                             to=opts.format,
                              extra_args=pdoc_args,
-                             filters=filters)
+                             filters=filters,
+                             outputfile=opts.outfile)
 
     time.sleep(0.5)
     print output
 
+    # with open('test.rst', 'w') as f:
+    #     f.write(output.encode('utf-8'))
+
+
+# TODO: If there are long captions in figures, need to add double-space at front
+# TODO: confirm tables are properly formatted
 
 
 

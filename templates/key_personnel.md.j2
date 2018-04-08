@@ -1,0 +1,15 @@
+### Key Personnel
+{% for a in meta.authors %}
+- **{{ people[a]['name'] }}
+  {%- if people[a].get('credential') %}, {{ people[a]['credential'] }}{% endif %}**
+  {%- if people[a].get('affiliation') %}, {{ people[a]['affiliation'] }}{% endif %}
+  {%- if people[a].get('blurb') %}, {{ people[a]['blurb'] }}{% endif %}
+  {%- if proj_blurbs is defined and proj_blurbs.get(a) %}, {{ proj_blurbs[a] }}{% endif %}
+{%- endfor %}
+{%- for a in meta.key_personnel %}
+- **{{ people[a]['name'] }}
+  {%- if people[a].get('credential') %}, {{ people[a]['credential'] }}{% endif %}**
+  {%- if people[a].get('affiliation') %}, {{ people[a]['affiliation'] }}{% endif %}
+  {%- if people[a].get('blurb') %}, {{ people[a]['blurb'] }}{% endif %}
+  {%- if proj_blurbs is defined and proj_blurbs.get(a) %}, {{ proj_blurbs[a] }}{% endif %}
+{%- endfor %}
