@@ -1,0 +1,10 @@
+Risks
+-------------------
+{% if meta.risk == "norisk_prospective" %}
+This is a no-risk prospective analysis.  Subjects will be consented for inclusion in the study, but imaged *only* as clinically indicated.  Subjects will not be exposed to any additional risks, other than potential loss of confidentiality.  We routinely handle imaging and demographic data safely, and safeguards are in place to protect patient confidentiality both during and after the review.
+{% elif meta.risk == "norisk_retrospective" %}
+This is a retrospective analysis.  Subjects will not be exposed to any additional risks, other than potential loss of confidentiality.  We routinely handle imaging and demographic data safely, and safeguards are in place to protect patient confidentiality both during and after the review.
+{% else %}
+{{ meta.risk }}
+{% endif %}
+
