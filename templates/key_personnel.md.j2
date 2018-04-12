@@ -1,15 +1,9 @@
 ### Key Personnel
-{% for a in meta.authors %}
+{% for a in meta.authors+meta.key_personnel %}
 - **{{ people[a]['name'] }}
   {%- if people[a].get('credential') %}, {{ people[a]['credential'] }}{% endif %}**
   {%- if people[a].get('affiliation') %}, {{ people[a]['affiliation'] }}{% endif %}
-  {%- if people[a].get('blurb') %}, {{ people[a]['blurb'] }}{% endif %}
-  {%- if proj_blurbs is defined and proj_blurbs.get(a) %}, {{ proj_blurbs[a] }}{% endif %}
-{%- endfor %}
-{%- for a in meta.key_personnel %}
-- **{{ people[a]['name'] }}
-  {%- if people[a].get('credential') %}, {{ people[a]['credential'] }}{% endif %}**
-  {%- if people[a].get('affiliation') %}, {{ people[a]['affiliation'] }}{% endif %}
-  {%- if people[a].get('blurb') %}, {{ people[a]['blurb'] }}{% endif %}
-  {%- if proj_blurbs is defined and proj_blurbs.get(a) %}, {{ proj_blurbs[a] }}{% endif %}
+  {%- if people[a].get('position') %}, {{ people[a]['position'] }}{% endif %}.
+  {%- if people[a].get('blurb') %} {{ people[a]['blurb'] }}{% endif %}
+  {%- if proj_blurbs is defined and proj_blurbs.get(a) %} {{ proj_blurbs[a] }}{% endif %}
 {%- endfor %}

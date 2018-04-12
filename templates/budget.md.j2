@@ -1,7 +1,10 @@
 ### Budget
 
-{{ content.budget }}
+{% if blocks.budget is defined -%}
+{{ blocks.budget }}
+: {{ meta.short | title }} Proposed {{ meta.duration | title }} Budget
+{% endif %}
 
-{% if content.get('budget_just') %}
-{{ content.budget_just }}
+{%- if blocks.get('budget_justification') %}
+{{ blocks.budget_justification }}
 {% endif %}

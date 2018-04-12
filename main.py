@@ -3,15 +3,15 @@ PragmaDoc - Pragmatical Text Editor
 
 Pragmatics: meaning is derrived from both semantics and context
 
-1. Read meta data
-2. Read asset data
-3. Recursively parse blueprint nodes
+1. Read meta and content
+2. Identify blueprint nodes
 4. Map asset and template to each node
 5. Preprocess each node with Jinja2
 6. Assemble final stream
 7. Use Pandoc academic markdown + citeproc to convert to final format
 
 Requires:
+Mistune (MD loadeer)
 Jinja2 preprocessor
 Pandoc Academic Markdown
 
@@ -20,7 +20,7 @@ Create doc for sharing/pdfing
 
 """
 
-import yaml, logging, time, collections, os
+import yaml, logging, time, collections, os, re
 from argparse import ArgumentParser
 from glob import glob
 from pprint import pformat
@@ -28,6 +28,7 @@ import pypandoc as pd
 from jinja2 import Environment, FileSystemLoader
 import dateutil.parser as dateparser
 from subprocess import check_output
+from loader import ContentLoader
 
 def read_yml(fp):
     with open(fp, 'rU') as f:
@@ -40,11 +41,19 @@ def read_blueprints():
     return bps
 
 def read_content(fp):
-    return read_yml(fp)
+    r, e = os.path.splitext(fp)
+    if e == ".yml":
+        return read_yml(fp)
+    elif r.endswith('md') and e == '.j2':
+        return ContentLoader().load(fp)
 
+# Can't merge arrays with this (but how would you?)
 def deep_update(d, u):
+    # logging.debug(pformat(d))
+    # logging.debug(pformat(u))
     for k, v in u.iteritems():
         if isinstance(v, collections.Mapping):
+            # logging.debug(d)
             d[k] = deep_update(d.get(k, {}), v)
         else:
             d[k] = v
@@ -69,7 +78,7 @@ def prerender_content(env, content, content_dir):
             m = env.from_string(item)
             return m.render(content)
 
-    content['content'] = render(content['content'])
+    content['blocks'] = render(content['blocks'])
 
     # prerender budget if it exists
     if os.path.exists(os.path.join(content_dir, "budget.csv")):
@@ -77,8 +86,8 @@ def prerender_content(env, content, content_dir):
             [os.path.join(py3_loc, "python3"),
              os.path.join(py3_loc, "csvtomd"),
              os.path.join(content_dir, "budget.csv")])
-        content['content']['budget'] = budget
-        logging.debug(budget)
+        content['blocks']['budget'] = budget
+        # logging.debug(budget)
 
 
 def render_template(env, name, content):
@@ -92,7 +101,12 @@ def render_template(env, name, content):
         return ''
     return template.render(content) + '\n\n'
 
+
 def render_pdoc(blueprint, content, content_dir):
+
+    # Create env
+    env = Environment(loader=FileSystemLoader(
+        [os.path.join(pdoc_loc, 'templates'), content_dir]))
 
     def j2_strftime(date):
         date = dateparser.parse(date)
@@ -100,14 +114,33 @@ def render_pdoc(blueprint, content, content_dir):
         format = '%B %d, %Y'
         return native.strftime(format)
 
-    env = Environment(loader=FileSystemLoader(
-        [os.path.join(pdoc_loc, 'templates'), content_dir]))
+    def j2_sortkeys(keys):
+
+        def get_year(k):
+            nums = re.sub('[^0-9]', '', k)
+            nums = nums[-4:]
+            # logging.debug(nums)
+            return nums
+
+        keys.sort(key=get_year, reverse=True)
+        return keys
+
+    def j2_bystart(items, reverse=False):
+        items.sort(key=lambda k: k['startdate'] or k['enddate'], reverse=reverse)
+        return items
+
+    # Register some useful filters
     env.filters['strftime'] = j2_strftime
+    env.filters['sortkeys'] = j2_sortkeys
+    env.filters['bystart'] = j2_bystart
+    env.globals.update(zip=zip)
 
-    prerender_content(env, content, content_dir)
-    logging.debug(pformat(content))
+    # Anything loaded under "blocks" gets pre-processed for Jinja
+    if content.get('blocks'):
+        prerender_content(env, content, content_dir)
+    # logging.debug(pformat(content))
 
-
+    # Go through each blueprint and append output to stream
     md = u""
     for item in blueprint:
         md += render_template(env, item, content)
@@ -115,9 +148,10 @@ def render_pdoc(blueprint, content, content_dir):
 
 def assemble_pdoc(blueprint_name, content_fp, global_fp=None):
     blueprint = read_blueprints()[blueprint_name]
-    globals = read_content(global_fp)
     content = read_content(content_fp)
-    content = deep_update(globals, content)
+    if global_fp and os.path.exists(global_fp):
+        globals = read_content(global_fp)
+        content = deep_update(globals, content)
 
     return blueprint, content
 
@@ -128,13 +162,12 @@ def parse_args():
     p.add_argument("input")
     p.add_argument("blueprint")
     p.add_argument("--bibliography", "-b", default="/Users/derek/MyLibrary.yaml")
-    p.add_argument("--globals",   "-g", default="content/globals.yml")
+    p.add_argument("--globals",   "-g", default="globals.yml")
     p.add_argument("--format",    "-f", default="markdown_github")
     p.add_argument("--outfile",   "-o")
 
     opts = p.parse_args()
     return opts
-
 
 
 if __name__ == "__main__":
@@ -150,7 +183,7 @@ if __name__ == "__main__":
     blueprint, content = assemble_pdoc(opts.blueprint, opts.input, opts.globals)
     md = render_pdoc(blueprint, content, os.path.split(opts.input)[0])
 
-    time.sleep(0.5)
+    # time.sleep(0.5)
     print(md)
 
     filters = ['pandoc-fignos',
@@ -158,22 +191,46 @@ if __name__ == "__main__":
                'pandoc-citeproc']
     pdoc_args = ['--mathjax',
                  '--bibliography={}'.format(opts.bibliography)]
+
+    if md.lower().find("suppress bibliography") >= 0:
+        # This is an inline bib
+        csl_path = os.path.join(pdoc_loc, "_static/chicago-syllabus_plus.csl")
+        pdoc_args.append('--csl={}'.format(csl_path))
+    else:
+        # Let's use reference links for readability
+        pdoc_args += [
+        '--reference-links',
+        '--reference-location=section']
+
+    _format = opts.format
+    if _format.startswith("markdown"):
+        _format = "{}-shortcut_reference_links+multiline_tables".format(_format)
+        _format = "{}-citations+multiline_tables".format(_format)
+
+    # _format = "docx"
+    # opts.outfile = "merck_cv.docx"
+
     output = pd.convert_text(source=md,
                              format='md',
-                             to=opts.format,
+                             to=_format,
                              extra_args=pdoc_args,
                              filters=filters,
                              outputfile=opts.outfile)
 
-    time.sleep(0.5)
     print output
 
-    # with open('test.rst', 'w') as f:
-    #     f.write(output.encode('utf-8'))
+    build_dir = "_build"
+    if not os.path.isdir(build_dir):
+        os.makedirs(build_dir)
+    basename = os.path.basename(opts.input)[:-6]  # .md.j2
+    pdoc_out = os.path.join( build_dir, "{}.md".format(basename) )
+
+    with open(pdoc_out, 'w') as f:
+        f.write(output.encode('utf-8'))
 
 
 # TODO: If there are long captions in figures, need to add double-space at front
-# TODO: confirm tables are properly formatted
+# TODO: confirm tables are properly formatted, can't start w comma!
 
 
 

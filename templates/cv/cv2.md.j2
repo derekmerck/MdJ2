@@ -1,0 +1,178 @@
+{#-  Jinja2 template for markdown formatted cv -#}
+
+{%- macro rulify() %}
+{%- for width in widths %}
+{{- '-' * (width - 1) + ' ' -}}
+{%- endfor %}
+{% endmacro -%}
+
+{%- macro rowify(things) %}
+{%- for thing, width in zip(things, widths) %}
+{{- '{:<{width}}'.format(thing, width=width) -}}
+{%- endfor %}
+{% endmacro -%}
+
+{%- macro daterange(start, end) %}
+{%- if start -%}
+{{- '{}-{}'.format(start.year, end.year or 'present') -}}
+{%- else -%}
+{{- '{}'.format(end.year or end) -}}
+{%- endif -%}
+{% endmacro -%}
+
+
+Cirriculum Vitae - {{  contact.name }}
+=============================================
+
+email: {{contact.email.work}}
+
+## Eduction
+{% set widths=[14,59] %}
+{{ rulify() -}}
+{% for item in education | bystart(true) -%}
+
+{{ rowify( [daterange(item.startdate, item.enddate),
+            '{deg:<5}{inst}, {place}'.format( 
+            deg=item.degree, 
+            inst=item.institution, 
+            place=item.place ) ] ) }}
+{%  endfor  %}
+{{- rulify() }}
+
+## Academic Appointments & Affiliations
+{{ rulify() -}}
+{% for item in appointments | bystart(true) -%}
+
+{{ rowify(  [daterange(item.startdate, item.enddate), 
+             "{pos}{com0}{dept}, {inst}, {place}".format(
+                pos=item.position,
+                com0=', ' if item.department else '',
+                dept=item.department or '',
+                inst=item.institution,
+                place=item.place) ] ) }}
+{%  endfor  %}
+{{- rulify() }}
+
+## Professional Positions
+{{ rulify() -}}
+{% for item in professional | bystart(true) -%}
+
+{{ rowify(  [daterange(item.startdate, item.enddate),
+             '{pos}{com0}{dept}, {comp}, {place}'.format(
+                pos=item.position,
+                com0=', ' if item.department else '',
+                dept=item.department or '',
+                comp=item.company,
+                place=item.place ) ] ) }}
+{%  endfor  %}
+{{- rulify() }}
+
+
+## Publications
+
+ORCID: {{ contact.orcid }}
+
+{%  for item in blocks.publications[1:-1].split(';') | sortkeys %}
+#. {{ item }}
+{% endfor %}
+
+## Research and Didactic Presentations
+{%  for item in blocks.presentations[1:-1].split(';') | sortkeys %}
+#. {{ item }}
+{% endfor %}
+
+
+## Awards
+{{ rulify() -}}
+{% for item in awards | bystart(true) -%}
+
+{{- rowify( [daterange(item.startdate, item.enddate), 
+   '{title}{com0}{source} {mechanism}{com1}{pi_}{pl} {pi}{com2}{amount}'.format(
+                        title=item.title or '',
+                        com0=', ' if item.title and item.source else '',
+                        source=item.source,
+                        mechanism=item.mechanism,
+                        com1=', ' if item.pi else '',
+                        pi_='PI' if item.pi,
+                        pl='s' if item.pi and item.pi.find(',')>-1,
+                        pi=item.pi or '',
+                        com2=', ' if item.amount else '',
+                        amount=item.amount or '') ] ) }}
+{% endfor %}
+{{- rulify() }}
+
+
+## Graduate Research Advisees
+{{ rulify() -}}
+{% for item in advisees | bystart(true) -%}
+
+{{ rowify( [daterange(item.startdate, item.enddate),
+            item.name + ', ' + item.institution + ' ' + item.role ] ) }}
+{% endfor %}
+{{- rulify() }}
+
+
+## Course Curricula and Teaching
+{{ rulify() -}}
+{% for item in teaching -%}
+
+{{ rowify( [daterange(item.startdate, item.enddate),
+            item.name + ' (' + item.number + '), ' + item.institution ] ) }}
+{% endfor %}
+{{- rulify() }}
+
+
+## Hosted Talks
+{%  for item in blocks.hosted_talks[1:-1].split(';') | sortkeys %}
+#. {{ item }}
+{% endfor %}
+
+
+## Press
+{%  for item in blocks.press[1:-1].split(';') | sortkeys %}
+#. {{ item }}
+{% endfor %}
+
+
+## Service
+{{ rulify() -}}
+{% for item in service | bystart(true) -%}
+
+{{ rowify( [daterange(item.startdate, item.enddate),
+            item.organization + ', ' + item.role ] ) }}
+{% endfor %}
+{{- rulify() }}
+
+
+## Professional Memberships
+{{ rulify() -}}
+{% for item in memberships | bystart(true) -%}
+
+{{ rowify( [daterange(item.startdate, item.enddate),
+            item.organization + ', ' + ' ' + item.role ] ) }}
+{% endfor %}
+{{- rulify() }}
+
+
+{### Interests#}
+{#{{ rulify() -}}#}
+{#{% for item in interests -%}#}
+{##}
+{#{{ rowify( [item.keys()[0], #}
+{#            item.values()[0]])}}#}
+{#{% endfor %}#}
+{#{{- rulify() }}#}
+
+
+## Technical Proficiencies
+{{ rulify() -}}
+{% for item in technical_proficiencies -%}
+
+{{ rowify( [item.keys()[0], 
+           ', '.join(item.values()[0])])}}
+{% endfor %}
+{{- rulify() }}
+
+---
+suppress-bibliography: True
+---

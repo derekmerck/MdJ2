@@ -1,6 +1,2 @@
 cv:
-  - cv_header
-  - positions
-  - pubications
-  - presentations
-  - awards
+  - cv/cv2

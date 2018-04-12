@@ -1,0 +1,133 @@
+{#-  Jinja2 template for markdown formatted short cv -#}
+
+{# Probably want some subformatters:
+   2 columm - left/right       "ABC               |    year"
+   3 column - left/left/right  "ABC     | DEF     |    year"
+   indented detail             "   abc...            "
+                               "   def...            "
+
+
+ Can we pull publications, presentations, and software out of zotero?
+
+       "citation ...                              |   year"
+       "     continued ...                        |       "
+       "     continued ...                        |       "
+
+
+ #}
+
+{%- macro thingdate(thing,startdate,enddate) -%}
+    {%- if not startdate.year -%}
+        {%- if enddate.year -%}
+            {{ '{0:<79}{1:>5}'.format(thing,enddate.year) }}
+        {%- else -%}
+            {{ '{0:<71}{1:>13}'.format(thing,enddate) }}
+        {%- endif -%}
+    {%- elif not enddate.year -%}
+        {{ '{0:<71}{1:>13}'.format(thing,'{0}-present'.format(startdate.year)) }}
+    {%-  else -%}
+        {{ '{0:<74}{1:>10}'.format(thing,'{0}-{1}'.format(startdate.year,enddate.year)) }}
+    {%- endif %}
+{%- endmacro -%}
+
+{%- macro detail( thing ) %}
+    thing | indent
+{% endmacro -%}
+
+Cirriculum Vitae -- {{  contact.name }}
+=============================================
+
+email: {{contact.email.work}}
+
+Eduction:
+---------------------------------------------
+{% for item in education -%}
+    {{- thingdate( '{0:<6}'.format(item.degree) + ' ' + item.institution + ', ' + item.place, '', item.enddate ) }}
+{%  endfor  %}
+
+Academic Appointments & Affiliations
+---------------------------------------------
+{% for item in appointments -%}
+    {{ thingdate( item.position + ', ' + item.department, item.startdate, item.enddate ) }}
+    {{ item.institution }}, {{ item.place }}
+
+{%  endfor  %}
+
+Professional Positions
+--------------------------------------------
+{% for item in professional -%}
+    {{ thingdate( item.position + ', ' + item.company, item.startdate, item.enddate ) }}
+    {% if item.role %}{{ item.role | indent(4) }}
+    {% endif %}
+{%  endfor  %}
+
+Publications
+--------------------------------------------
+{%  for item in publications -%}
+{%  if item['container-title'] %}
+{{(item.title + ', ' + item['container-title']) | wordwrap(74) | indent(4) }}
+{%  else %}
+{{(item.title) | wordwrap(74) | indent(4) }}
+{% endif %}
+
+{% endfor %}
+
+
+
+Presentations
+--------------------------------------------
+
+
+
+
+Awards
+--------------------------------------------
+{% for item in awards -%}
+    {% if item.mechanism and item.pi%}{{- thingdate( item.source + " " + item.mechanism + ', PI ' + item.pi, item.startdate, item.enddate ) }}
+    {% elif item.mechanism %}{{- thingdate( item.source + " " + item.mechanism, item.startdate, item.enddate ) }}
+    {% else %}{{- thingdate( item.source + ', PI ' + item.pi, item.startdate, item.enddate ) }}
+    {% endif -%}
+    {{ item.title  }} {% if item.amount %}({{ item.amount }}){% endif %}
+
+{%  endfor  %}
+
+
+Graduate Research Advisees
+--------------------------------------------
+{% for item in advisees -%}
+    {{- thingdate( '{0:<14}'.format(item.name) + ' ' + item.institution + ' ' + item.role, item.startdate, item.enddate ) }}
+{%  endfor  %}
+
+
+Course Cirricula and Lectures
+--------------------------------------------
+{% for item in teaching -%}
+    {{- thingdate( '{0:<14}'.format(item.number) + ' ' + item.name + ' (' + item.institution + ')', item.startdate, item.enddate ) }}
+{%  endfor  %}
+
+
+Public Software Packages
+-------------------------------------------
+
+
+
+Service
+-------------------------------------------
+{%  for item in service -%}
+    {{ thingdate( item.role + ', ' + item.organization, item.startdate, item.enddate ) }}
+{% endfor %}
+
+
+Professional Memberships
+-------------------------------------------
+{%  for item in memberships -%}
+    {{ thingdate( item.role + ', ' + item.organization, item.startdate, item.enddate ) }}
+
+{% endfor %}
+
+
+Technical Proficiencies
+------------------------------------------
+{%-  for item in technical_proficiencies %}
+{{ '{0:<14}'.format(item+':') }} {{ ', '.join(technical_proficiencies[item] ) }}
+{%- endfor %}

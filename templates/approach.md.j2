@@ -1,13 +1,26 @@
+{% macro handle_block(_block, level) %}
+{%- if _block is string %}
+{%-   set remaining_sections = None %}
+{{ _block }}
+{%- elif _block[0] is defined and _block[0].get('preamble') %}  
+{%-   set remaining_sections=_block[1:] %}
+{{ _block[0]['preamble'] }}
+{%- else -%}
+{%-   set remaining_sections=_block %}
+{%- endif %}
+{%- if remaining_sections %}
+{%-   for item in remaining_sections %}
+
+{{ '#'*level }} {{ item.keys()[0] | title }}
+{{ handle_block(item.values()[0], level+1) }}
+
+{%-    if item.keys()[0].lower() == "data collection" and meta.get('deidentified') %}
+
+Deidentified image data will be stored on a password protected research PACS.  A lexicon mapping study ids to real patient medical record numbers will be encrypted and stored on a password protected system for auditing purposes.  At the conclusion of the study, the deidentified data will be securely deleted.  The encrypted lexicon will be stored for at least 5 years so that the study may be reproduced exactly if necessary.
+{%-     endif %}
+{%-   endfor -%}
+{%- endif %}
+{%- endmacro %}
 Approach
 ----------------------
-{% if content.approach[0].get('preamble'): %}
-{{ content.approach[0]['preamble'] }}
-{% endif -%}
-
-{% for item in content['approach'][1:] %}
-### {{ item.keys() | first | title }}
-
-{{ item.values() | first }}
-{% if item.keys()[0].lower() == "data collection" and meta.get('deidentified') %}
-Deidentified image data will be stored on a password protected research PACS.  A lexicon mapping study ids to real patient medical record numbers will be encrypted and stored on a password protected system for auditing purposes.  At the conclusion of the study, the deidentified data will be securely deleted.  The encrypted lexicon will be stored for at least 5 years so that the study may be reproduced exactly if necessary.
-{% endif %}{%- endfor -%}
+{{ handle_block(blocks['approach'], 3) }}
