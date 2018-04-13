@@ -1,0 +1,50 @@
+{%- macro rulify() %}
+{%- for width in widths %}
+{{- '-' * (width - 1) + ' ' -}}
+{%- endfor %}
+{% endmacro -%}
+
+{%- macro rowify(things) %}
+{%- for thing, width in zip(things, widths) %}
+{{- '{:<{width}}'.format(thing, width=width) -}}
+{%- endfor %}
+{% endmacro -%}
+
+{%- macro daterange(start, end) %}
+{%- if start -%}
+{{- '{}-{}'.format(start.year, end.year or 'present') -}}
+{%- else -%}
+{{- '{}'.format(end.year or end) -}}
+{%- endif -%}
+{% endmacro -%}
+
+{% set widths=[15,60] %}
+## B. Positions and Employment
+{{ rulify() -}}
+{% for item in (academic + professional) | bystart(true) -%}
+
+{{ rowify(  [daterange(item.startdate, item.enddate), 
+             "{pos}{com0}{dept}, {inst}, {place}".format(
+                pos=item.position,
+                com0=', ' if item.department else '',
+                dept=item.department or '',
+                inst=item.institution or item.company,
+                place=item.place) ] ) }}
+{%  endfor  %}
+{{- rulify() }}
+
+### Other Experience and Memberships
+
+{{ rulify() -}}
+{% for item in (service + affiliations + memberships) | bystart(true) -%}
+
+{{ rowify(  [daterange(item.startdate, item.enddate), 
+             "{pos}{com0}{dept}, {inst}{com1}{place}".format(
+                pos=item.position or item.role,
+                com0=', ' if item.department else '',
+                dept=item.department or '',
+                inst=item.institution or item.company or item.organization,
+                com1=', ' if item.place else '',
+                place=item.place) ] ) }}
+{%  endfor  %}
+{{- rulify() -}}

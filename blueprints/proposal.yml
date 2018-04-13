@@ -1,20 +1,20 @@
 proposal:
 - front_matter
-- aims
-- background
-- approach
-- risks
-- expected_results
-- resources
+- proposal/aims
+- narrative/background
+- narrative/approach
+- narrative/risks
+- narrative/expected_results
+- proposal/resources
 - references
 
 # No resources
 proposal_narrative:
 - front_matter
-- aims
-- background
-- approach
-- risks
-- expected_results
+- proposal/aims
+- narrative/background
+- narrative/approach
+- narrative/risks
+- narrative/expected_results
 - references
 

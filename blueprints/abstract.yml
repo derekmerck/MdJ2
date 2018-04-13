@@ -1,6 +1,6 @@
 abstract:
   - front_matter
-  - background
-  - method
-  - results
-  - discussion
+  - report/background
+  - report/method
+  - report/results
+  - report/discussion

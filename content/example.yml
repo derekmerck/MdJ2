@@ -1,36 +1,59 @@
 ---
-# PanBook Example
+# PragmaDoc Example
 
 meta:
-  title:  Test Book
-  authors: [Derek, Lisa]
+  title:  How to be a Magician
+  authors: [Foo, Bar]
   date: April 10, 2018
 
 people:
-  Lisa:
-    name: Lisa Merck
-    title: Scientist
-    credential: MD, MPH
-  
+  Foo:
+    name: John Foo
+    credential: RMA
+    title: Magician's Assistant
+
 data:
   key1: 100
   key2: 200
 
-content:
-  background: >
-    blah blah {{ data.key1 }}
+---
 
-  method: |
-    something for project 1 using {{ data.key1 }} [@Keshavamurthy_SPIE_2017]
-    something for project 2 using {{ data.key1 * data.key2 }}
+Short Background
+=================
 
-    ```table
-    ---
-    markdown: true
-    ---
-    {% include "table.csv" %}
-    ```
+About {{ data.key1 }} days ago, I joined the circus, and have never looked back.
 
-    ```mermaid
-    {% include "timeline.mmd" %}
-    ```
+Method
+=================
+
+If you want to cite something from your Zotero library, export it to your home directory as "MyLibrary.yaml", then use Pandoc style citations.
+
+`[@Keshavamurthy_SPIE_2017]`
+
+Renders as [@Keshavamurthy_SPIE_2017]
+
+Force inline bibliography entries (at the place of citation) by adding `[s]uppress-bibliography: True` in the pandoc parsable metadata.
+
+You can use Jinja2 markup inline, so `{{ data.key1 * data.key2 }}` will become {{ data.key1 * data.key2 }}.
+
+Tables
+-----------------
+
+If you are using a csv table, you should pre-load it by calling it "budget" or "table".  Then you can reference it by name.
+
+{% include "table.csv" %}
+
+Mermaid
+-----------------
+
+Mermaid can be included with the common embedded code format:
+
+```
+\`\`\`mermaid
+{% include "timeline.mmd" %}
+\`\`\`
+```
+
+```mermaid
+{% include "timeline.mmd" %}
+```

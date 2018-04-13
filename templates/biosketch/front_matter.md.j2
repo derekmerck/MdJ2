@@ -1,0 +1,31 @@
+% Biosketch
+% {{ contact.name }}
+% {{ now }}
+
+Biographical Sketch
+=============================
+------------------------- ----------------------------------------------
+**NAME**                  {{ contact.name }}, {{ contact.crendetial }}
+
+**eRA COMMONS USERNAME**  {{ contact.era_name }}
+
+**POSITION TITLE**        {{ contact.position_title }}
+------------------------- ----------------------------------------------
+
+**EDUCATION/TRAINING**
+
+------------------------------------------------------------------------
+INSTITUTION & LOCATION         DEGREE    COMPLETION   FIELD OF STUDY 
+----------------------------- --------  ------------  ------------------
+{%- for item in education | bystart %}
+{{ "{:<34}{:<8}{:<12}{}".format(
+    item.institution + ', ', 
+    item.degree, 
+    item.enddate.year, 
+    item.department) }}
+{{ item.place }}
+
+{% endfor -%}
+-----------------------------------------------------------------------
+
+

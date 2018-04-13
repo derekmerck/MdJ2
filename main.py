@@ -28,6 +28,7 @@ import pypandoc as pd
 from jinja2 import Environment, FileSystemLoader
 import dateutil.parser as dateparser
 from subprocess import check_output
+import datetime
 from loader import ContentLoader
 
 def read_yml(fp):
@@ -129,10 +130,38 @@ def render_pdoc(blueprint, content, content_dir):
         items.sort(key=lambda k: k['startdate'] or k['enddate'], reverse=reverse)
         return items
 
+    def j2_ongoing(items):
+        """
+        Returns list of items with no enddate, or enddate in the future
+        """
+        # logging.debug(items)
+        ret = []
+        for item in items:
+            if not item.get('enddate') or \
+                    item['enddate'] > datetime.datetime.now().date():
+                ret.append(item)
+        return ret
+
+    def j2_completed(items):
+        """
+        Returns list of items with enddate in the past
+        """
+        # logging.debug(items)
+        ret = []
+        for item in items:
+            if item.get('enddate') and \
+                    item['enddate'] < datetime.datetime.now().date():
+                ret.append(item)
+        return ret
+
     # Register some useful filters
     env.filters['strftime'] = j2_strftime
     env.filters['sortkeys'] = j2_sortkeys
     env.filters['bystart'] = j2_bystart
+    env.filters['ongoing'] = j2_ongoing
+    env.filters['completed'] = j2_completed
+
+    env.globals['now'] = datetime.datetime.utcnow
     env.globals.update(zip=zip)
 
     # Anything loaded under "blocks" gets pre-processed for Jinja
@@ -192,7 +221,7 @@ if __name__ == "__main__":
     pdoc_args = ['--mathjax',
                  '--bibliography={}'.format(opts.bibliography)]
 
-    if md.lower().find("suppress bibliography") >= 0:
+    if md.lower().find("suppress-bibliography") >= 0:
         # This is an inline bib
         csl_path = os.path.join(pdoc_loc, "_static/chicago-syllabus_plus.csl")
         pdoc_args.append('--csl={}'.format(csl_path))
@@ -200,7 +229,9 @@ if __name__ == "__main__":
         # Let's use reference links for readability
         pdoc_args += [
         '--reference-links',
-        '--reference-location=section']
+        '--reference-location=section',
+        # '--metadata link-citations=true'
+        ]
 
     _format = opts.format
     if _format.startswith("markdown"):
@@ -219,15 +250,18 @@ if __name__ == "__main__":
 
     print output
 
-    build_dir = "_build"
+    build_dir = "_build/md"
+
     if not os.path.isdir(build_dir):
         os.makedirs(build_dir)
-    basename = os.path.basename(opts.input)[:-6]  # .md.j2
+
+    basename = os.path.splitext(os.path.basename(opts.input))[0]
+    if basename.endswith(".md"):  # was .md.j2
+        basename = basename[:-3]
     pdoc_out = os.path.join( build_dir, "{}.md".format(basename) )
 
     with open(pdoc_out, 'w') as f:
         f.write(output.encode('utf-8'))
-
 
 # TODO: If there are long captions in figures, need to add double-space at front
 # TODO: confirm tables are properly formatted, can't start w comma!

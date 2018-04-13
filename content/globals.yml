@@ -1,16 +1,11 @@
 people:
-  Derek:
-    name: Derek Merck
-    credential: PhD
-    title: Author
-    affiliation: Rhode Island Hospital
-
-  Lisa:
-    name: Lisa Merck
-    title: Scientist
-    credential: MD, MPH
+  Bar:
+    name: Jane Bar
+    title: Magician
+    credential: MMg
+    affiliation: Grand Cirque
 
 places:
-  Barrington:
-    name: Barrington, RI
-    role: town
+  Grand Cirque:
+    name: Spamton
+    role: circus

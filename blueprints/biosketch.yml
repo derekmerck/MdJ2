@@ -1,0 +1,7 @@
+biosketch:
+
+- biosketch/front_matter              # inc education
+- biosketch/personal_statement
+- biosketch/experience                # Use same as CV?
+- biosketch/contributions_to_science
+- biosketch/current_support           # Expanded ongoing/pending/complete

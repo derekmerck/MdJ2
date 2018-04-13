@@ -1,0 +1,60 @@
+{%- macro rulify() %}
+{%- for width in widths %}
+{{- '-' * (width - 1) + ' ' -}}
+{%- endfor %}
+{% endmacro -%}
+
+{%- macro rowify(things) %}
+{%- for thing, width in zip(things, widths) %}
+{{- '{:<{width}}'.format(thing, width=width) -}}
+{%- endfor %}
+{% endmacro -%}
+
+{%- macro daterange(start, end) %}
+{%- if start -%}
+{{- '{}-{}'.format(start.year, end.year or 'present') -}}
+{%- else -%}
+{{- '{}'.format(end.year or end) -}}
+{%- endif -%}
+{% endmacro -%}
+
+{% set widths=[15,60] %}
+## D. Research Support
+
+### Ongoing
+{{ rulify() -}}
+{%- set ongoing=awards | ongoing | bystart(true) %}
+{%- for item in ongoing %}
+{{- rowify( [daterange(item.startdate, item.enddate), 
+   '{title}{com0}{source} {mechanism}{com1}{pi_}{pl} {pi}{com2}{amount}'.format(
+                        title=item.title or '',
+                        com0=', ' if item.title and item.source else '',
+                        source=item.source,
+                        mechanism=item.mechanism,
+                        com1=', ' if item.pi else '',
+                        pi_='PI' if item.pi,
+                        pl='s' if item.pi and item.pi.find(',')>-1,
+                        pi=item.pi or '',
+                        com2=', ' if item.amount else '',
+                        amount=item.amount or '') ] ) }}
+{% endfor %}
+{{- rulify() }}
+
+### Completed
+{{ rulify() -}}
+{%- set completed=awards | completed | bystart(true) %}
+{%- for item in completed %}
+{{- rowify( [daterange(item.startdate, item.enddate), 
+   '{title}{com0}{source} {mechanism}{com1}{pi_}{pl} {pi}{com2}{amount}'.format(
+                        title=item.title or '',
+                        com0=', ' if item.title and item.source else '',
+                        source=item.source,
+                        mechanism=item.mechanism,
+                        com1=', ' if item.pi else '',
+                        pi_='PI' if item.pi,
+                        pl='s' if item.pi and item.pi.find(',')>-1,
+                        pi=item.pi or '',
+                        com2=', ' if item.amount else '',
+                        amount=item.amount or '') ] ) }}
+{% endfor %}
+{{- rulify() }}

@@ -41,7 +41,7 @@ email: {{contact.email.work}}
 
 ## Academic Appointments & Affiliations
 {{ rulify() -}}
-{% for item in appointments | bystart(true) -%}
+{% for item in (academic + affiliations) | bystart(true) -%}
 
 {{ rowify(  [daterange(item.startdate, item.enddate), 
              "{pos}{com0}{dept}, {inst}, {place}".format(
