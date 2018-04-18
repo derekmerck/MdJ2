@@ -1,0 +1,15 @@
+# {{ title }}
+{% for a in authors %}
+* {{ a }}
+{%- endfor %}
+
+{{ blocks.background | render_blocks(level=2) }}
+
+{{ blocks.approach   | render_blocks(level=2) }}
+
+{{ blocks['preliminary-results'] | render_blocks(level=2) }}
+
+{{ blocks.conclusion | render_blocks(level=2) }}
+
+Bibliography
+----------------

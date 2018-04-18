@@ -1,0 +1,4 @@
+scalar: !include foo.yml
+array: !include  [foo.yml, bar.yml]
+dict: !include   {foo: foo.yml, bar: bar.yml}
+raw: !include_raw baz.txt

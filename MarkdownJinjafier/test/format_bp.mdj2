@@ -1,0 +1,3 @@
+{{ blocks.bar | boilerplate('spam', 'bar') | render_blocks(level=3) }}
+
+{{ boilerplate('spam') }}

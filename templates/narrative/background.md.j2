@@ -1,4 +1,5 @@
 Background
 ----------------------
-
-{{ blocks.background }}
+{%- with block = blocks['background'] %}
+{%- include "nested_block.md.j2" %}
+{%- endwith %}

@@ -6,7 +6,7 @@ from anytree import Node, RenderTree, exporter, LevelOrderIter
 from pprint import pprint
 
 # MdRenderer Pull:
-# Need to make get_text an @classfunction
+# Need to decorate get_text as an @classfunction
 # Need to make ordered list marker a #. for pandoc
 
 class Mdj2Renderer(MdRenderer):
@@ -37,13 +37,15 @@ class Jinja2Lexer(mistune.InlineLexer):
     def enable_jinja2(self):
 
         # Teach grammar to stop on braces
-        self.grammar_class.text = re.compile(r'^[\s\S]+?(?=[\\<!\[_*`~{}]|https?://| {2,}\n|$)')
-        # '^\b_((?:__|[^_])+?)_\b'
-        self.rules.jinja2 = re.compile(
-            r'({[{#%])(.*)([#%}]})'
-        )
-        # Want this way before emphasis or other markup
-        # that is found in Jinja blocks
+        self.grammar_class.text = \
+            re.compile(r'^[\s\S]+?(?=[\\<!\[_*`~{}]|https?://| {2,}\n|$)')
+
+        # Create a rule to collect tokens between braces
+        self.rules.jinja2 = \
+            re.compile(r'({[{#%])(.*)([#%}]})')
+
+        # Want to look for this _way_ before emphasis (multiply) or
+        # other markup that could be found in Jinja blocks
         self.default_rules.insert(5, 'jinja2')
 
     def output_jinja2(self, m):
@@ -121,7 +123,7 @@ class ContentLoader(object):
     def load(self, fp):
         with open(fp, "rU") as f:
             doc = f.read()
-        _, y, m = re.split("^---$", doc, flags=re.MULTILINE)
+        _, y, m = re.split("^---$", doc, flags=re.MULTILINE, maxsplit=2)
 
         content = self.get_meta(y)
         md_content = self.get_md_content(m)

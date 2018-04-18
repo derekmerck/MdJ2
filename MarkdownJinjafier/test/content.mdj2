@@ -1,0 +1,8 @@
+---
+foo: bar
+---
+# {{ foo }}
+
+eggs eggs eggs
+
+## {{ foo*2 }}

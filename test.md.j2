@@ -1,0 +1,63 @@
+---
+# meta
+title: Sample Document
+authors: [Author 1, Author 2]
+
+# boilerplates
+deidentified: true
+risk: no-risk-retrospective
+
+# variables available in blocks
+data: 
+  var1: 10
+  var2: 20
+
+conclusion: >-
+  At the end of the day, all you can say is that you tried.
+
+---
+
+Background
+====================
+
+These types of problems have plagued researchers throughout the ages!
+
+
+Approach
+====================
+
+This methodology was previously explored [@Ayachit2015, @Barbu2005, @Sunshine2000].
+
+Data Collection
+--------------------
+
+If there is a "data collection" section, filtering with `boilerplate(deidentified)`
+will insert some boilerplate, if appropriate.
+
+
+Preliminary Results
+====================
+
+Preliminary results should be set aside as its own block.  A template can decide
+where and how to use it.
+
+Following are some *important results*:
+
+Experiment 1
+---------------------
+
+Variable     observation
+----------   -------------
+weather      {{ data.var1 * 3 }}
+temperature  {{ data.var2 / 5 }}
+
+Expected Results
+====================
+
+We expect that some import stuff will happen!
+
+
+Conclusion
+====================
+
+And in conclusion: {{ conclusion }}

@@ -72,12 +72,12 @@ email: {{contact.email.work}}
 
 ORCID: {{ contact.orcid }}
 
-{%  for item in blocks.publications[1:-1].split(';') | sortkeys %}
+{%  for item in publications[1:-1].split(';') | sortkeys %}
 #. {{ item }}
 {% endfor %}
 
 ## Research and Didactic Presentations
-{%  for item in blocks.presentations[1:-1].split(';') | sortkeys %}
+{%  for item in presentations[1:-1].split(';') | sortkeys %}
 #. {{ item }}
 {% endfor %}
 
@@ -123,13 +123,13 @@ ORCID: {{ contact.orcid }}
 
 
 ## Hosted Talks
-{%  for item in blocks.hosted_talks[1:-1].split(';') | sortkeys %}
+{%  for item in hosted_talks[1:-1].split(';') | sortkeys %}
 #. {{ item }}
 {% endfor %}
 
 
 ## Press
-{%  for item in blocks.press[1:-1].split(';') | sortkeys %}
+{%  for item in press[1:-1].split(';') | sortkeys %}
 #. {{ item }}
 {% endfor %}
 

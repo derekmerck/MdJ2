@@ -25,7 +25,7 @@ from argparse import ArgumentParser
 from glob import glob
 from pprint import pformat
 import pypandoc as pd
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, TemplateNotFound
 import dateutil.parser as dateparser
 from subprocess import check_output
 import datetime
@@ -97,10 +97,10 @@ def render_template(env, name, content):
     # logging.debug(env.list_templates())
     try:
         template = env.get_template(template_fn)
-    except:
+        return template.render(content) + '\n\n'
+    except TemplateNotFound:
         logging.warn("Template {} not found!".format(template_fn))
         return ''
-    return template.render(content) + '\n\n'
 
 
 def render_pdoc(blueprint, content, content_dir):
@@ -241,6 +241,8 @@ if __name__ == "__main__":
     # _format = "docx"
     # opts.outfile = "merck_cv.docx"
 
+    # logging.debug(pdoc_args)
+
     output = pd.convert_text(source=md,
                              format='md',
                              to=_format,
@@ -263,8 +265,8 @@ if __name__ == "__main__":
     with open(pdoc_out, 'w') as f:
         f.write(output.encode('utf-8'))
 
-# TODO: If there are long captions in figures, need to add double-space at front
-# TODO: confirm tables are properly formatted, can't start w comma!
+# TODO: rst: If there are long captions in figures, need to add double-space at front
+# TODO: csv: confirm tables have no rows that start w comma!  (Or fix csv->md plugin)
 
 
 
