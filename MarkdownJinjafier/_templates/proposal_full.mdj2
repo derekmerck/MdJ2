@@ -1,0 +1,49 @@
+{% include "sections/front_matter.mdj2" %}
+
+{% if blocks['aims'] is defined %}{{ blocks['aims'] | render_blocks(level=2) }}{% endif %}
+
+{{ blocks.background | render_blocks(level=2) }}
+
+{{ blocks.approach   | boilerplate('deidentified', 'data-collection', deidentified) | render_blocks(level=2) }}
+
+{% if blocks['preliminary-results'] is defined %}{{ blocks['preliminary-results'] | render_blocks(level=3) }}{% endif %}
+
+{{ blocks['expected-results']  | render_blocks(level=2) }}
+
+{% if risk is defined -%}
+Risk
+----------------
+{{ boilerplate(risk) }}
+{%- else %}
+{{ blocks.risk | render_blocks(2) }}
+{%- endif %}
+
+Resources
+----------------
+
+### Key Personnel
+{% for a in authors + key_personnel %}
+- **{{ people[a]['name'] }}
+  {%- if people[a].get('credential') %}, {{ people[a]['credential'] }}{% endif %}**
+  {%- if people[a].get('affiliation') %}, {{ people[a]['affiliation'] }}{% endif %}
+  {%- if people[a].get('position') %}, {{ people[a]['position'] }}{% endif %}.
+  {%- if people[a].get('blurb') %} {{ people[a]['blurb'] }}{% endif %}
+  {%- if people[a].get('project_blurb') %} {{ people[a].get('project_blurb') }}{% endif %}
+{% endfor %}
+
+{% if blocks['equipment'] is defined %}{{ blocks['equipment'] | render_blocks(level=3) }}{% endif %}
+
+{% if blocks['budget'] is defined -%}
+{{  blocks.budget | render_blocks(2)  }}
+{{  blocks['budget-justification'] | render_blocks(3) }}
+{%- endif %}
+
+{% if timeline_mmd is defined -%}
+### Timeline
+
+```mmd
+{{ timeline_mmd }}
+```
+{%- endif %}
+
+{% include "sections/bibliography.mdj2" %}

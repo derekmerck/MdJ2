@@ -1,11 +1,23 @@
 from dateutil import parser as dateparser
-import datetime, pypandoc, re, json
+import datetime, re, os
+from subprocess import Popen, PIPE
+
+py3_loc = "/Users/derek/anaconda/envs/python3/bin"
+
+def j2_csv2table(csv):
+    command = [os.path.join(py3_loc, "python3"),
+               os.path.join(py3_loc, "csvtomd")]
+
+    process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    return process.communicate(csv)[0]
+
 
 def j2_strftime(date):
     date = dateparser.parse(date)
     native = date.replace(tzinfo=None)
     format = '%B %d, %Y'
     return native.strftime(format)
+
 
 def j2_sortkeys(keys):
     def get_year(k):
@@ -48,3 +60,8 @@ def j2_completed(items):
             ret.append(item)
     return ret
 
+
+if __name__ == "__main__":
+
+    csv = "top, middle, bottom\n1,2,3"
+    print( j2_csv2table(csv) )

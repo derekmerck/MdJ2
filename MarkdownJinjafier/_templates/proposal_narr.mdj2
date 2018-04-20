@@ -1,13 +1,10 @@
-# {{ title }}
-{% for a in authors %}
-* {{ a }}
-{%- endfor %}
+{% include "sections/front_matter.mdj2" %}
 
 {{ blocks.background | render_blocks(level=2) }}
 
-{{ blocks.approach   | block_boilerplate('deidentified', 'data-collection', deidentified) | render_blocks(level=2) }}
+{{ blocks.approach   | boilerplate('deidentified', 'data-collection', deidentified) | render_blocks(level=2) }}
 
-{{ blocks['preliminary-results'] | render_blocks(level=3) }}
+{% if blocks['preliminary-results'] is defined %}{{ blocks['preliminary-results'] | render_blocks(level=3) }}{% endif %}
 
 {{ blocks['expected-results']  | render_blocks(level=2) }}
 
@@ -16,6 +13,4 @@ Risk
 
 {{ boilerplate(risk, risk is defined) }}
 
-
-Bibliography
-----------------
+{% include "sections/bibliography.mdj2" %}

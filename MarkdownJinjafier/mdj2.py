@@ -4,10 +4,19 @@ MarkdownJinjafier
 Merck, Spring 2018
 """
 
-import jinja2, re, yaml, logging, pypandoc, json, os, time, StringIO, datetime
+import jinja2, re, yaml, logging, pypandoc, json, os, time, StringIO, datetime, collections
 from yaml_extras import IncludeLoader
 import jinja_filters
 from pprint import pprint, pformat
+
+# Can't merge arrays with this (but how would you?)
+def deep_update(d, u):
+    for k, v in u.iteritems():
+        if isinstance(v, collections.Mapping):
+            d[k] = deep_update(d.get(k, {}), v)
+        else:
+            d[k] = v
+    return d
 
 class MdJ2(object):
 
@@ -23,9 +32,17 @@ class MdJ2(object):
             bp = f.read()
             self.__class__.bp_blocks = self.blockify(bp)
 
+        globals_fp = kwargs.get('globals')
+        if globals_fp:
+            with open(globals_fp, "rU") as f:
+                self.global_vars = yaml.load(f)
+        else:
+            self.global_vars = {}
+
+
     def call_pandoc(self, md, fmt="markdown_github", outfile=None):
 
-        filters = [#'pandoc-fignos',
+        filters = ['pandoc-fignos',
                    #'pandoc-mermaid',
                    'pandoc-citeproc']
         pdoc_args = [#'--mathjax',
@@ -55,10 +72,10 @@ class MdJ2(object):
                                  outputfile=outfile)
         return pd
 
-    def render_md(self, fp_content, fp_format):
+    def render_md(self, fp_content, fp_format, fp_globals=None, fmt=None, outfile=None):
 
-        intermediate = self.render_mdj2(fp_content, fp_format)
-        output = self.call_pandoc(intermediate)
+        intermediate = self.render_mdj2(fp_content, fp_format, global_vars=self.global_vars, fp_globals=fp_globals)
+        output = self.call_pandoc(intermediate, fmt=fmt, outfile=outfile)
 
         return output
 
@@ -75,6 +92,7 @@ class MdJ2(object):
         cd = json.loads(pd)
         cls.pd_api = cd.get('pandoc-api-version')
         pd_blocks = {}
+
         for b in cd.get('blocks'):
             if b['t'] == "Header" and b['c'][0] == 1:
                 key = b['c'][1][0]
@@ -136,12 +154,13 @@ class MdJ2(object):
 
             return blocks
 
-        env = jinja2.Environment()
+        env = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.join(cls.module_path, '_templates')))
         env.filters['sortkeys'] = jinja_filters.j2_sortkeys
         env.filters['strftime'] = jinja_filters.j2_strftime
         env.filters['bystart'] = jinja_filters.j2_bystart
         env.filters['ongoing'] = jinja_filters.j2_ongoing
         env.filters['completed'] = jinja_filters.j2_completed
+        env.filters['csv2table'] = jinja_filters.j2_csv2table
 
         env.globals['now'] = datetime.datetime.utcnow
         env.globals['zip'] = zip
@@ -157,22 +176,35 @@ class MdJ2(object):
         return output
 
     @classmethod
-    def render_mdj2(cls, fp_content, fp_format):
+    def render_mdj2(cls, fp_content, fp_format, global_vars=None, fp_globals=None):
+
         meta = MdJ2.load(fp_content)
+
+        if not global_vars and fp_globals:
+            with open(fp_globals, 'rU') as f:
+                global_vars = yaml.load(f)
+        if global_vars:
+            meta = deep_update(global_vars, meta)
+
         with open(fp_format, "rU") as f:
             template = f.read()
+
         return MdJ2.render(template, meta)
 
     @classmethod
-    def loads(cls, s):
+    def loads(cls, s, fp=None):
         # load string or stream
 
         # check for multidocument
-        if s.getvalue().find("^---$") < 0:
-            meta = yaml.load(s, Loader=IncludeLoader)
+        if not re.match("^---$", s, flags=re.MULTILINE):
+            stio = StringIO.StringIO(s)
+            stio.name = fp or cls.module_path
+            meta = yaml.load( stio, Loader=IncludeLoader)
         else:
             _, y_s, md_s = re.split("^---$", s, flags=re.MULTILINE, maxsplit=2)
-            meta = yaml.load( y_s, Loader=IncludeLoader )
+            stio = StringIO.StringIO(y_s)
+            stio.name = fp or cls.module_path
+            meta = yaml.load( stio, Loader=IncludeLoader )
             if md_s:
                 md_ss = cls.render(md_s, meta)
                 meta['blocks'] = cls.blockify( md_ss )
@@ -181,9 +213,8 @@ class MdJ2(object):
     @classmethod
     def load(cls, fp):
         with open(fp, 'rU') as f:
-            s = StringIO.StringIO(f.read())
-            s.name = fp
-            return cls.loads(s)
+            s = f.read()
+        return cls.loads(s, fp)
 
 
 def test_loaders():
@@ -227,17 +258,3 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     # test_loaders()
     # test_boilerplate()
-
-    fp_content = ("/Users/derek/dev/pragmatics/merck_cv/merck_cv.yml")
-    fp_format =  os.path.join(MdJ2.module_path, "_templates/cv.mdj2" )
-    output = MdJ2().render_md(fp_content, fp_format)
-
-    time.sleep(0.5)
-    print output
-
-
-
-
-
-
-

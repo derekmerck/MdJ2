@@ -1,6 +1,7 @@
 # Created by .ignore support plugin (hsz.mobi)
-cain
 mermaid-images
+.pytest*
+_old
 
 # IntelliJ project files
 .idea
